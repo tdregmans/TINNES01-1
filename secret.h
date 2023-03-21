@@ -1,8 +1,6 @@
 #ifndef SECRET
-const char ssid[] = "Ziggo7860708";
-//const char ssid[] = "Tesla IoT";
-const char pass[] = "rQsuejw4va3Y";
-//const char pass[] = "fsL6HgjN"; 
+const char ssid[] = "Tesla IoT";
+const char pass[] = "fsL6HgjN"; 
 
 const char *MQTT_HOST = "netwerkenbasis.com";
 const int MQTT_PORT = 1883; // Voer hier de MQTT-broker poort in op de aangegeven plek
