@@ -1,18 +1,25 @@
 /*
   bot.ino
 
-  version 1
-    
+  version 3
+
   CMI-TI 22 TINNES01
   Student: Thijs Dregmans (1024272)
   Netwerken & Security (vervolg) opdracht 2
-  Last edited: 20-03-2023
- 
+  Last edited: 21-03-2023
+
 */
 
-#include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <PubSubClient.h>
+
 #include "secret.h"
+
+
+#include "time.h"
+const char* ntpServer = "pool.ntp.org";
+const long  gmtOffset_sec = 3600;
+const int   daylightOffset_sec = 0;
 
 #include "DHT.h"
 
@@ -21,57 +28,100 @@
 
 DHT dht(DHTPIN, DHTTYPE);
 
+WiFiClientSecure espClient;
+PubSubClient client(espClient);
 
-WiFiClient wifiClient;
+unsigned long lastMsg = 0;
+#define MSG_BUFFER_SIZE  (50)
+char msg[MSG_BUFFER_SIZE];
+int value = 0;
 
-PubSubClient client(wifiClient);
+void setup_wifi() {
+
+  delay(10);
+  // We start by connecting to a WiFi network
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, pass);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  espClient.setCACert(local_root_ca);
+
+  randomSeed(micros());
+
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+}
+
+void printLocalTime()
+{
+  struct tm timeinfo;
+  if(!getLocalTime(&timeinfo)){
+    Serial.println("Failed to obtain time");
+    return;
+  }
+  Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
+}
 
 void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Message arrived [");
   Serial.print(topic);
   Serial.print("] ");
   String command;
-  for (int i=0;i<length;i++) {
-    Serial.print((char)payload[i]);
+  for (int i = 0; i < length; i++) {
     command += (char)payload[i];
   }
-  Serial.println();
+  Serial.println(command);
 
-  // react to command
-  if(command == "temperature") {
+  if (command == String(MQTT_CLIENT_ID)+": temperatuur") {
     delay(2000);
-    // Reading temperature or humidity takes about 250 milliseconds!
-    // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
-    // Read temperature as Celsius
     float t = dht.readTemperature();
-    if (isnan(t)) {
-      client.publish("chat/message","sensor.");
-    }
-    else {
-      client.publish("chat/message","sensor.");
-    }
+    Serial.print("Temperatuur is ");
+    Serial.println(t);
+    String message = "Temperatuur is ";
+    message.concat(String(t));
+    message.concat("ºC");
+    client.publish(MQTT_TOPIC, message.c_str());
   }
-  // react to command
-  else if(command == "humidity") {
+  else if (command == String(MQTT_CLIENT_ID)+": vochtigheid") {
     delay(2000);
-    // Reading temperature or humidity takes about 250 milliseconds!
-    // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
     float h = dht.readHumidity();
-    if (isnan(h)) {
-      client.publish("chat/message","sensor.");
-    }
-    else {
-      client.publish("chat/message","sensor.");
-    }
+    Serial.print("Luchtvochtigheid is ");
+    Serial.println(h);
+    String message = "Luchtvochtigheid is ";
+    message.concat(String(h));
+    message.concat("%");
+    client.publish(MQTT_TOPIC, message.c_str());
   }
-  // react to command
-  else if(command == "LED on") {
+  else if (command == String(MQTT_CLIENT_ID)+": led:aan") {
     digitalWrite(LED_BUILTIN, HIGH);
+    client.publish(MQTT_TOPIC, "LED is aan");
   }
-  // react to command
-  else if(command == "LED off") {
-      digitalWrite(LED_BUILTIN, LOW);
+  else if (command == String(MQTT_CLIENT_ID)+": led:uit") {
+    digitalWrite(LED_BUILTIN, LOW);
+    client.publish(MQTT_TOPIC, "LED is uit");
   }
+
+
+
+  //  // Switch on the LED if an 1 was received as first character
+  //  if ((char)payload[0] == '1') {
+  //    digitalWrite(LED_BUILTIN, LOW);   // Turn the LED on (Note that LOW is the voltage level
+  //    // but actually the LED is on; this is because
+  //    // it is active low on the ESP-01)
+  //  } else {
+  //    digitalWrite(LED_BUILTIN, HIGH);  // Turn the LED off by making the voltage HIGH
+  //  }
+
 }
 
 void reconnect() {
@@ -79,12 +129,16 @@ void reconnect() {
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
     // Attempt to connect
-    if (client.connect(MQTT_HOST)) {
+    if (client.connect(MQTT_CLIENT_ID, MQTT_USER, MQTT_PASS)) {
       Serial.println("connected");
+      
       // Once connected, publish an announcement...
-      client.publish("chat/message","sensor.");
+      String message = String(MQTT_CLIENT_ID);
+      message.concat(" connected with MQTT broker.");
+      client.publish(MQTT_TOPIC, message.c_str());
+      
       // ... and resubscribe
-      client.subscribe("chat/message");
+      client.subscribe(MQTT_TOPIC);
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -95,36 +149,34 @@ void reconnect() {
   }
 }
 
-void setup()
-{
+void setup() {
+  pinMode(LED_BUILTIN, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
   Serial.begin(115200);
-  dht.begin();
-
-  pinMode(LED_BUILTIN, OUTPUT);
-
-  WiFi.begin(ssid, pass);
-
-  while (WiFi.status() != WL_CONNECTED) {
-      delay(500);
-      Serial.print(".");
-  }
-  
-  Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
-
+  setup_wifi();
   client.setServer(MQTT_HOST, MQTT_PORT);
   client.setCallback(callback);
 
-  // Allow the hardware to sort itself out
-  delay(1500);
+
+  dht.begin();
+  //init and get the time
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+  printLocalTime();
 }
 
-void loop()
-{
+void loop() {
+
   if (!client.connected()) {
     reconnect();
   }
   client.loop();
+
+  //  unsigned long now = millis();
+  //  if (now - lastMsg > 2000) {
+  //    lastMsg = now;
+  //    ++value;
+  //    snprintf (msg, MSG_BUFFER_SIZE, "hello world #%ld", value);
+  //    Serial.print("Publish message: ");
+  //    Serial.println(msg);
+  //    client.publish("outTopic", msg);
+  //  }
 }
