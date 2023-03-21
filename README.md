@@ -64,4 +64,6 @@ Hier zie je nu de chat app. De app werkt met Self-Signed Certificates (HTTPS).
 
 Thijs Dregmans (1024272) - 21-03-2023
 
+### De opdracht
 
+Het bedrijf voor wie je aan het werk bent, is zeer te vreden met de chat applicatie die je hebt gebouwd. Het is nu enkele maanden later en het bedrijf is dankzij jouw applicatie enorm gegroeid in waarde. Er wordt geschat dat het bedrijf nu een waarde heeft van ruim € 500.000,-. Het bedrijf heeft jouw voor de applicatie rijkelijk betaald en is zich nu aan het verdiepen in de wondere wereld van IoT. Ze willen graag eigen hardware ontwikkelen en hebben contracten gesloten met Espressif (het bedrijf achter de ESP32/ESP8266 Microcontrollers ) en met Arduino. Dankzij deze contracten mag het bedrijf winst maken door gebruik maken van de producten van deze bedrijven. Het bedrijf heeft echter jouw kennis nodig om een prototype te maken met een ESP32 of ESP8266. Hierop moet code draaien dat is geschreven in Arduino. Het bedrijf wil graag dat de hardware inhaakt op de geweldige chat applicatie.
