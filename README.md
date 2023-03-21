@@ -53,12 +53,15 @@ Om het system werkende te krijgen moet men de volgende stappen doorlopen:
 1. Installeer Docker Desktop
 2. Zet de `docker-compose.yml` file in een map
 3. Gebruik het `docker compose up` commando in de Command Prompt
-4. Zet de `index.html` file in de `/public` directory
-5. Zet de `nginx.conf` file <<<<<<<<<<<<<<<veranderen
-6. Zet de `mosquitto.conf` file <<<<<<<<<<<<<<<veranderen
-7. Zet het certificaat en privé-sleutel, in het mapje `cert`
-8. Herstart de Docker containers
+4. Zet de inhoud van de map in de eerder gekozen map
+5. Herstart de Docker containers
 
-9. Open `https://localhost`
+6. Open `https://localhost`
 
 Hier zie je nu de chat app. De app werkt met Self-Signed Certificates (HTTPS).
+
+## TINNES01 - Opdracht 2
+
+Thijs Dregmans (1024272) - 21-03-2023
+
+
