@@ -9,16 +9,3 @@ services:
       - ./certs/:/etc/nginx/certs/
     ports:
       - "443:443"
-      - "80:80"
-
-  mosquitto:
-    container_name: mosquitto
-    image: eclipse-mosquitto
-    restart: always
-    volumes:
-      - ./config:/mosquitto/config
-      - ./config:/mosquitto/data
-      - ./config:/mosquitto/log
-    ports:
-      - "1884:1884"
-      - "1883:1883"

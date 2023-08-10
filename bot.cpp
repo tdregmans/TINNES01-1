@@ -1,6 +1,13 @@
 /*
-  bot.ino - Thijs Dregmans (1024272)
-  Last edited: 21-03-2023
+
+  bot.ino
+
+  version 3.1 (final version)
+
+  CMI-TI 22 TINNES01
+  Student: Thijs Dregmans (1024272)
+  Netwerken & Security (vervolg) opdracht 2
+  Last edited: 29-03-2023
 */
 
 
@@ -18,7 +25,12 @@ const long  gmtOffset_sec = 0;
 // Type of sensor
 #define DHTTYPE DHT11
 
+
 // Init sensor
+// Sensor settings
+#define DHTPIN 13
+#define DHTTYPE DHT11
+
 DHT dht(DHTPIN, DHTTYPE);
 
 // Init wifi clients
@@ -76,15 +88,6 @@ void callback(char* topic, byte* payload, unsigned int length) {
     digitalWrite(LED_BUILTIN, LOW);
     client.publish(MQTT_TOPIC, "LED is uit");
   }
-
-  //  // Switch on the LED if an 1 was received as first character
-  //  if ((char)payload[0] == '1') {
-  //    digitalWrite(LED_BUILTIN, LOW);   // Turn the LED on (Note that LOW is the voltage level
-  //    // but actually the LED is on; this is because
-  //    // it is active low on the ESP-01)
-  //  } else {
-  //    digitalWrite(LED_BUILTIN, HIGH);  // Turn the LED off by making the voltage HIGH
-  //  }
 
 }
 
@@ -145,7 +148,10 @@ void setup() {
   printLocalTime();
   
   pinMode(LED_BUILTIN, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
+
   Serial.begin(115200);
+
+  // Setup wifi and Mqtt client
   setup_wifi();
   client.setServer(MQTT_HOST, MQTT_PORT);
   client.setCallback(callback);
@@ -160,14 +166,4 @@ void loop() {
     reconnect();
   }
   client.loop();
-
-  //  unsigned long now = millis();
-  //  if (now - lastMsg > 2000) {
-  //    lastMsg = now;
-  //    ++value;
-  //    snprintf (msg, MSG_BUFFER_SIZE, "hello world #%ld", value);
-  //    Serial.print("Publish message: ");
-  //    Serial.println(msg);
-  //    client.publish("outTopic", msg);
-  //  }
 }
