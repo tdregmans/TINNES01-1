@@ -9,3 +9,4 @@ services:
       - ./certs/:/etc/nginx/certs/
     ports:
       - "443:443"
+      - "80:80"

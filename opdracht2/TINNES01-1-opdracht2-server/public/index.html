@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>MQTT Chat</title>
+        <style>
+            body {
+                padding: 0%;
+                margin: 0%;
+                background-color: cornflowerblue;
+            }
+        
+            #chat {
+                border: none;
+                border-radius: 20px;
+                padding: 25px;
+                margin: 15%;
+        
+                background-color: azure;
+            }
+        
+            #messages li {
+                border: none;
+                border-radius: 5px;
+                padding: 5px;
+                padding-left: 20px;
+                margin: 20px;
+        
+                list-style-type: none;
+        
+                background-color: gainsboro;
+            }
+
+            #messages .my-messages {
+                border: none;
+                border-radius: 5px;
+                padding: 5px;
+                padding-left: 20px;
+                margin: 20px;
+        
+                list-style-type: none;
+        
+                background-color: cornflowerblue;
+            }
+
+        
+            #message {
+                border: none;
+                border-radius: 5px;
+                background-color: lightgray;
+                height: 15px;
+                margin: 5px;
+                padding: 10px;
+                width: 80%;
+            }
+        
+            #input-button {
+                border: none;
+                border-radius: 5px;
+                background-color: cornflowerblue;
+                width: 10%;
+                height: 35px;
+            }
+        </style>
+    </head>
+    <body>
+
+        <div id="chat">
+            <h1>MQTT Chat</h1>
+            <hr>
+            
+            <ul id="messages"></ul>
+
+            <br>
+            <hr>
+            <form>
+                <input type="text" id="message" placeholder="message..." autofocus>
+                <button id="input-button" type="submit">&#8617;</button>
+            </form>
+        </div>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.2.7/mqtt.min.js"></script>
+        <script>
+            
+            const Client = mqtt.connect('wss://netwerkenbasis.com:1884', {
+                username: 'student',
+                password: 'welkom01'
+            });
+            const username = prompt('What is your username?');
+
+            Client.on('connect', function () {
+                console.log('Client connected to MQTT broker');
+
+                Client.subscribe('chat/message', function (err) {
+                    if (err) {
+                        console.error('Error subscribing to topic:', err);
+                    } else {
+                        console.log('Client subscribed to topic: chat/message');
+                        Client.publish('chat/message', username + ' joined the chat');
+                    }
+                });
+            });
+
+            Client.on('message', function (topic, message) {
+                console.log('Client received message on topic', topic, ':', message.toString());
+
+                const li = document.createElement('li');
+                li.textContent = message.toString();
+
+                console.log(document.getElementById('message').value);
+                if (document.getElementById('message').value === message.toString()) {
+                    li.classList.add('my-messages');
+                }
+                document.getElementById('message').value = '';
+
+                document.getElementById('messages').appendChild(li);
+            });
+
+            document.querySelector('form').addEventListener('submit', function (event) {
+                event.preventDefault();
+
+                const message = document.getElementById('message').value;
+                if (message != "") {
+                    Client.publish('chat/message', message);
+                }
+            });
+
+        
+        </script>
+    </body>
+</html>
